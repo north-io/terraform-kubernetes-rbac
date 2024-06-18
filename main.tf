@@ -5,8 +5,20 @@ module "roles" {
 
   create = try(each.value.create, true)
 
-  annotations = try(var.annotations, null)
-  labels      = try(var.labels, null)
+  # annotations = try(var.annotations, null)
+  # labels      = try(var.labels, null)
+  annotations = try(
+    merge(
+      var.annotations,
+      try(each.value.annotations, {})
+    ),
+    null)
+  labels      = try(
+    merge(
+      var.labels, 
+      try(each.value.labels, {})
+    ), 
+    null)
 
   create_role    = try(each.value.create_role, true)
   role_name      = each.key
@@ -50,8 +62,20 @@ module "cluster_roles" {
 
   create = try(each.value.create, true)
 
-  annotations = try(var.annotations, null)
-  labels      = try(var.labels, null)
+  annotations = try(
+    merge(
+      var.annotations,
+      try(each.value.annotations, {})
+    ),
+    null)
+  labels      = try(
+    merge(
+      var.labels, 
+      try(each.value.labels, {})
+    ), 
+    null)
+  
+  cluster_role_aggregation_rules = try(each.value.cluster_role_aggregation_rules, [])
 
   create_cluster_role = try(each.value.create_cluster_role, true)
   ### using cluster_role_name allow to use the same cluster role for rolebinding in different namespaces
