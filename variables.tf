@@ -27,3 +27,15 @@ variable "cluster_roles" {
   type        = any
   default     = {}
 }
+
+variable "only_create_namespace" {
+  description = "Only create the namespace. Be careful! If you set this to false and set namespace to an existing namespace, the module will delete all resources in the namespace."
+  type        = bool
+  default     = true
+}
+ variable "resolve_conflicts" {
+   description = "Resolve conflicts when applying resources."
+   type        = bool
+   default     = true
+   
+ }
