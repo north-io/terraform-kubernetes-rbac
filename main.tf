@@ -16,6 +16,29 @@ module "roles" {
   role_binding_name      = try(each.value.role_binding_name, null)
   role_binding_namespace = try(each.value.role_binding_namespace, null)
   role_binding_subjects  = try(each.value.role_binding_subjects, null)
+
+  depends_on = [ kubectl_manifest.role_namespace ]
+}
+
+
+
+resource "kubectl_manifest" "role_namespace" {
+  for_each = toset(
+    concat(
+      [ for k, v in var.roles : v.role_binding_namespace != null ? v.role_binding_namespace : v.role_namespace ],
+      [ for k, v in var.cluster_roles : v.role_binding_namespace ]
+    )
+  )
+  ## resource will not be deleted for safety
+  apply_only = true 
+  # apply_only = try(var.only_create_namespace, true)
+  force_conflicts = try(var.resolve_conflicts, true)
+  yaml_body = <<YAML
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${each.value}
+YAML
 }
 
 module "cluster_roles" {
@@ -40,4 +63,7 @@ module "cluster_roles" {
   role_binding_name      = try(each.value.role_binding_name, null)
   role_binding_namespace = try(each.value.role_binding_namespace, null)
   role_binding_subjects  = try(each.value.role_binding_subjects, null)
+
+
+  depends_on = [ kubectl_manifest.role_namespace ]
 }
