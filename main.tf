@@ -24,9 +24,11 @@ module "roles" {
 
 resource "kubectl_manifest" "role_namespace" {
   for_each = toset(
-    concat(
-      [ for k, v in var.roles : v.role_binding_namespace != null ? v.role_binding_namespace : v.role_namespace ],
-      [ for k, v in var.cluster_roles : v.role_binding_namespace ]
+    compact(
+      concat(
+        [ for k, v in var.roles : v.role_binding_namespace != null ? v.role_binding_namespace : try(v.role_namespace, null) ],
+        [ for k, v in var.cluster_roles : try(v.role_binding_namespace, null) ]
+      )
     )
   )
   ## resource will not be deleted for safety
