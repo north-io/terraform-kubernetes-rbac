@@ -25,29 +25,12 @@ resource "kubernetes_role_v1" "r" {
   }
 }
 
-data "kubernetes_resource" "role" {
-  count = var.create && !var.create_role && var.role_name != null ? 1 : 0
-
-  api_version = "rbac.authorization.k8s.io/v1"
-  kind        = "Role"
-
-  metadata {
-    name      = var.role_name
-    namespace = var.role_namespace
-  }
-}
-
 locals {
   role_name = (
     !var.create_role && var.role_name != null ?
-    data.kubernetes_resource.role[0].object.metadata.name :
+    var.role_name :
     null
   )
-  # role_namespace = (
-  #   !var.create_role && var.role_name != null ?
-  #   data.kubernetes_resource.role[0].object.metadata.namespace :
-  #   null
-  # )
 }
 
 ################################################################################
@@ -102,21 +85,11 @@ resource "kubernetes_cluster_role_v1" "cr" {
   }
 }
 
-data "kubernetes_resource" "cluster_role" {
-  count = var.create && !var.create_cluster_role && var.cluster_role_name != null ? 1 : 0
-
-  api_version = "rbac.authorization.k8s.io/v1"
-  kind        = "ClusterRole"
-
-  metadata {
-    name = var.cluster_role_name
-  }
-}
 
 locals {
   cluster_role_name = (
     !var.create_cluster_role && var.cluster_role_name != null ?
-    data.kubernetes_resource.cluster_role[0].object.metadata.name :
+    var.cluster_role_name :
     null
   )
 }
@@ -173,6 +146,9 @@ resource "kubernetes_role_binding_v1" "rb" {
       )
     }
   }
+
+  depends_on = [ kubernetes_role_v1.r, kubernetes_cluster_role_v1.cr ]
+
 }
 
 ################################################################################
@@ -210,4 +186,5 @@ resource "kubernetes_cluster_role_binding_v1" "crb" {
       )
     }
   }
+    depends_on = [ kubernetes_cluster_role_v1.cr ]
 }
